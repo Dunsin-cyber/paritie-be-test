@@ -1,0 +1,132 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// ? background tasks and queues using redis
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String  @id @default(uuid())
+  email          String  @unique
+  password       String
+  name           String
+  transactionPIN String?
+
+  wallet    Wallet?
+  txEntries TransactionEntry[] @relation("txEntries")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Wallet {
+  id      String @id @default(uuid())
+  balance Float  @default(0)
+  userId  String @unique
+  user    User   @relation(fields: [userId], references: [id])
+
+  entries TransactionEntry[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Transaction {
+  id          String            @id @default(uuid())
+  type        TransactionType
+  sourceType  TransactionSource // identifies the domain model
+  reference   String? // optional external object id
+  description String?
+  status      TransactionStatus @default(PENDING)
+
+  amount    Float
+  currency  String @default("NGN")
+  fee       Float  @default(0)
+  netAmount Float // amount - fee
+  metadata  Json?
+
+  entries  TransactionEntry[]
+  donation Donation[]
+  transfer Transfer[]
+
+  createdAt DateTime @default(now())
+}
+
+model TransactionEntry {
+  id            String      @id @default(uuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+
+  walletId String
+  wallet   Wallet @relation(fields: [walletId], references: [id])
+
+  userId String
+  user   User   @relation("txEntries", fields: [userId], references: [id])
+
+  amount        Float // +credit, –debit
+  balanceBefore Float
+  balanceAfter  Float
+
+  createdAt DateTime @default(now())
+
+  @@index([transactionId])
+  @@index([walletId])
+}
+
+
+//? Business / domain objects
+
+model Donation {
+  id      String  @id @default(uuid())
+  amount  Float
+  message String?
+
+  transactionId String?
+  transaction   Transaction? @relation(fields: [transactionId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Transfer {
+  id     String  @id @default(uuid())
+  amount Float
+  note   String?
+
+  transactionId String?
+  transaction   Transaction? @relation(fields: [transactionId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+//? ENUMS
+
+enum TransactionType {
+  CREDIT
+  DEBIT
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REVERESED
+}
+
+enum TransactionSource {
+  DONATION
+  TRANSFER
+  AIRTIME
+  OTHER
+}
