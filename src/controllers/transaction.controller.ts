@@ -61,9 +61,12 @@ export const handleGetUserTransactions = asyncHandler(
   }
 );
 
+//TODO: support finding by both userid and wallet id togther for security, after 
+//global user type issue has been fixed 
 export const handleGetUserBalance = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = (req as Request & {user?: User}).user!;
+    
     const txs = await getBalanceFromTxs(user.id);
 
     return res.status(config.STATUS_CODE.OK).json(new ApiResponse('success', txs));

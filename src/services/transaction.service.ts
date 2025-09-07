@@ -50,6 +50,7 @@ export const getUserTransactions = async (
   });
 };
 
+//TODO: also check for walletId equals too
 export const getBalanceFromTxs = async (userId: string) => {
   const result = await prisma.transactionEntry.aggregate({
     _sum: {
@@ -57,7 +58,6 @@ export const getBalanceFromTxs = async (userId: string) => {
     },
     where: {
       userId,
-      //TODO: also check for walletId equals
     },
   });
 
