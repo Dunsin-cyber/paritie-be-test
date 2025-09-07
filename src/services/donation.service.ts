@@ -2,7 +2,7 @@ import {PrismaClient, User} from '@prisma/client';
 import utils from '@/utils/index';
 import {AppError} from '@/utils/AppError';
 import {paginate} from '@/utils/pagintion';
-import {config} from "@/constants" 
+import {config} from '@/constants';
 
 const prisma = new PrismaClient();
 
@@ -17,7 +17,10 @@ export const createDonation = async (
   }
 
   if (!(await utils.decryptPassword(donor.transactionPIN!, txPIN))) {
-    throw new AppError('Invalid transaction PIN', config.STATUS_CODE.BAD_REQUEST);
+    throw new AppError(
+      'Invalid transaction PIN',
+      config.STATUS_CODE.BAD_REQUEST
+    );
   }
 
   const data = await prisma.$transaction(async (tx) => {
@@ -29,11 +32,17 @@ export const createDonation = async (
     });
 
     if (!donorWallet) {
-      throw new AppError('Donor wallet not found', config.STATUS_CODE.NOT_FOUND);
+      throw new AppError(
+        'Donor wallet not found',
+        config.STATUS_CODE.NOT_FOUND
+      );
     }
 
     if (donorWallet.balance < amount) {
-      throw new AppError('Insufficient balance to make donation', config.STATUS_CODE.BAD_REQUEST);
+      throw new AppError(
+        'Insufficient balance to make donation',
+        config.STATUS_CODE.BAD_REQUEST
+      );
     }
 
     const beneficiaryWallet = await tx.wallet.findUnique({
@@ -42,7 +51,10 @@ export const createDonation = async (
     });
 
     if (!beneficiaryWallet) {
-      throw new AppError('Beneficiary wallet not found', config.STATUS_CODE.NOT_FOUND );
+      throw new AppError(
+        'Beneficiary wallet not found',
+        config.STATUS_CODE.NOT_FOUND
+      );
     }
 
     //? 2 - UPDATE WALLET BALANCE
@@ -90,19 +102,18 @@ export const createDonation = async (
     });
 
     const donation = await tx.donation.create({
-        data: {
-            amount,
-            transactionId: transaction.id,
+      data: {
+        amount,
+        transactionId: transaction.id,
+      },
+    });
 
-        }
-    })
-
-    const { updatedAt, ...cleanDonationReturn } = donation
+    const {updatedAt, ...cleanDonationReturn} = donation;
     return {
       id: cleanDonationReturn.id,
       amount: cleanDonationReturn.amount,
       transactionId: cleanDonationReturn.transactionId,
-      createdAt: cleanDonationReturn.createdAt
+      createdAt: cleanDonationReturn.createdAt,
     };
   });
 

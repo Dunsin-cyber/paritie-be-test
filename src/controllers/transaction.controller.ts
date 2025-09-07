@@ -11,19 +11,20 @@ import {AppError} from '@/utils/AppError';
 import {User} from '@prisma/client';
 import {NextFunction, Request, Response} from 'express';
 import {validate as uuidValidate} from 'uuid';
+import {config} from '@/constants';
 
 export const handleCreateTxPIN = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const validInput = utils.validPIN(req.body.pin);
     if (!validInput) {
-      throw new AppError('Invalid pin format', 400);
+      throw new AppError('Invalid pin format', config.STATUS_CODE.BAD_REQUEST);
     }
 
     const user = (req as Request & {user?: User}).user!;
     await setTransactionPIN(user.id, req.body.pin);
 
     return res
-      .status(201)
+      .status(config.STATUS_CODE.CREATED)
       .json(new ApiResponse('success', 'Pin created successfully'));
   }
 );
@@ -44,7 +45,7 @@ export const handleGetUserTransactions = asyncHandler(
     }
 
     if ((startDate && !endDate) || (!startDate && endDate)) {
-      throw new AppError('There must be both start and end date', 401);
+      throw new AppError('There must be both start and end date', config.STATUS_CODE.BAD_REQUEST);
     }
 
     const date = {start: startDate?.start, end: endDate?.end};
@@ -56,7 +57,7 @@ export const handleGetUserTransactions = asyncHandler(
       limit as string
     );
 
-    return res.status(200).json(new ApiResponse('success', txs));
+    return res.status(config.STATUS_CODE.OK).json(new ApiResponse('success', txs));
   }
 );
 
@@ -65,25 +66,27 @@ export const handleGetUserBalance = asyncHandler(
     const user = (req as Request & {user?: User}).user!;
     const txs = await getBalanceFromTxs(user.id);
 
-    return res.status(200).json(new ApiResponse('success', txs));
+    return res.status(config.STATUS_CODE.OK).json(new ApiResponse('success', txs));
   }
 );
 
 export const handleGetATransaction = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const txId = req.params.txId;
+    const user = (req as Request & {user?: User}).user!;
+
 
     const validTxId = uuidValidate(txId);
     if (!validTxId) {
-      throw new AppError('Invalid transaction ID format', 400);
+      throw new AppError('Invalid transaction ID format', config.STATUS_CODE.BAD_REQUEST);
     }
 
-    const tx = await getATransaction(txId);
+    const tx = await getATransaction(txId, user.id);
 
     if (!tx) {
-      throw new AppError('Transaction Entry not found', 404);
+      throw new AppError('Transaction Entry not found', config.STATUS_CODE.NOT_FOUND);
     }
 
-    return res.status(200).json(new ApiResponse('success', tx));
+    return res.status(config.STATUS_CODE.OK).json(new ApiResponse('success', tx));
   }
 );

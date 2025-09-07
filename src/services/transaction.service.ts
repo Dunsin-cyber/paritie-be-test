@@ -24,6 +24,7 @@ export const getUserTransactions = async (
         wallet: {
           userId,
         },
+       
       },
     },
   };
@@ -41,7 +42,11 @@ export const getUserTransactions = async (
     orderBy: {createdAt: 'desc'},
     page: page ? +page : undefined,
     limit: limit ? +limit : undefined,
-    include: {entries: true},
+    include: {entries: {
+        where: {
+            userId
+        }
+    }},
   });
 };
 
@@ -59,13 +64,17 @@ export const getBalanceFromTxs = async (userId: string) => {
   return result._sum.amount ?? 0; // default to 0 if null
 };
 
-export const getATransaction = async (txId: string) => {
+export const getATransaction = async (txId: string, userId:string) => {
   const tx = await prisma.transaction.findUnique({
     where: {
       id: txId,
     },
     include: {
-      entries: true,
+      entries: {
+        where: {
+            userId
+        }
+      },
     },
   });
 
