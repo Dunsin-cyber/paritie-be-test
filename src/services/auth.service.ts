@@ -1,6 +1,8 @@
 import {PrismaClient, User} from '@prisma/client';
 import utils from '@/utils/index';
 import {AppError} from '@/utils/AppError';
+import { config } from '@/constants';
+
 
 const prisma = new PrismaClient();
 
@@ -35,7 +37,7 @@ export const createUser = async (data: CreateUserT) => {
       });
 
       if (systemWallet.balance < amount) {
-        throw new Error('❌ System wallet has insufficient balance');
+        throw new AppError('❌ System wallet has insufficient balance', config.STATUS_CODE.INTERNAL_SERVER_ERROR);
       }
 
       // 2. Create transaction, transfer and entries
@@ -108,7 +110,7 @@ export const getUserByEmail = async (email: string) => {
     select: {
       id: true,
       email: true,
-      name: true
+      name: true,
     },
   });
 
