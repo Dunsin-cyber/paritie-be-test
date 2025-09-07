@@ -40,6 +40,30 @@ const router = express.Router();
  *     responses:
  *       201:
  *         description: User created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: 9c3b41d2-daa1-4406-9bac-f67e969fa9d3
+ *                     name:
+ *                       type: string
+ *                       example: Dunsin
+ *                     email:
+ *                       type: string
+ *                       example: dunsin@example.com
+ *                     accessToken:
+ *                       type: string
+ *                       description: JWT token for authentication
+ *                       example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
  */
 
 router.post('/create', handleCreateAcc);
@@ -70,7 +94,31 @@ router.post('/create', handleCreateAcc);
  *                 example: StrongPass123
  *     responses:
  *       200:
- *         description: Login successfully
+ *         description: User logged in successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: 9c3b41d2-daa1-4406-9bac-f67e969fa9d3
+ *                     name:
+ *                       type: string
+ *                       example: Dunsin
+ *                     email:
+ *                       type: string
+ *                       example: dunsin@example.com
+ *                     accessToken:
+ *                       type: string
+ *                       description: JWT token for authentication
+ *                       example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
  */
 
 router.post('/login', handleLoginAcc);
@@ -91,7 +139,22 @@ router.post('/login', handleLoginAcc);
  *         description: HTTP-only refresh token cookie
  *     responses:
  *       200:
- *         description: New access token returned
+ *         description: New access token returned valid for 7 days
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     accessToken:
+ *                       type: string
+ *                       description: JWT token for authentication
+ *                       example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
  *       401:
  *         description: Refresh token missing or invalid
  */
@@ -106,6 +169,17 @@ router.post('/refresh-token', handleRefreshToken);
  *     responses:
  *       200:
  *         description: User logged out and refresh token cookie cleared
+ *         content:
+ *            application/json:
+ *              schema:
+ *                type: object
+ *                properties:
+ *                  status:
+ *                    type: string
+ *                    example: success
+ *                  data:
+ *                    type: string
+ *                    example: Logged out
  */
 router.get('/logout', handleLogout);
 

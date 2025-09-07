@@ -15,13 +15,13 @@ export const handleCreateAcc = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const validInput = utils.validateCreateUserInput(req.body);
     if (!validInput) {
-      throw new AppError('Invalid input data', 400);
+      throw new AppError('Invalid input data', config.STATUS_CODE.BAD_REQUEST);
     }
     const {email, password, name} = req.body;
 
     const emailExists = await getUserByEmail(email);
     if (emailExists) {
-      throw new AppError('Email already exists', 409);
+      throw new AppError('Email already exists', config.STATUS_CODE.CONFLICT);
     }
 
     const user = await createUser({
@@ -30,7 +30,10 @@ export const handleCreateAcc = asyncHandler(
       email: utils.formatEmail(email),
     });
     if (!user) {
-      throw new AppError('Error creating an Account, please try again', 500);
+      throw new AppError(
+        'Error creating an Account, please try again',
+        config.STATUS_CODE.INTERNAL_SERVER_ERROR
+      );
     }
 
     const accessToken = jwt.sign({userId: user.id}, config.JWT_SECRET!, {
@@ -52,8 +55,15 @@ export const handleCreateAcc = asyncHandler(
     });
 
     return res
-      .status(200)
-      .json(new ApiResponse('success', {user, accessToken}));
+      .status(config.STATUS_CODE.CREATED)
+      .json(
+        new ApiResponse('success', {
+          id: user?.id,
+          name: user?.name,
+          email: user?.email,
+          accessToken: accessToken,
+        })
+      );
   }
 );
 
@@ -62,17 +72,23 @@ export const handleLoginAcc = asyncHandler(
     //TODO: check if both params are wrong too
     const {email, password} = req.body;
     if (!utils.validPassword(password) || !utils.validEmail(email)) {
-      throw new AppError('Invalid input data', 400);
+      throw new AppError('Invalid input data', config.STATUS_CODE.BAD_REQUEST);
     }
 
     const user = await getUserPrivateFn(utils.formatEmail(email));
     if (!user) {
-      throw new AppError('Check login Credentials', 404);
+      throw new AppError(
+        'Check login Credentials',
+        config.STATUS_CODE.NOT_FOUND
+      );
     }
 
     const isMatch = await utils.decryptPassword(user.password, password);
     if (!isMatch) {
-      throw new AppError('Invalid email or password', 400);
+      throw new AppError(
+        'Invalid email or password',
+        config.STATUS_CODE.BAD_REQUEST
+      );
     }
 
     const safeUser = await getUserByEmail(utils.formatEmail(email));
@@ -97,15 +113,26 @@ export const handleLoginAcc = asyncHandler(
     });
 
     return res
-      .status(200)
-      .json(new ApiResponse('success', {user: safeUser, accessToken}));
+      .status(config.STATUS_CODE.OK)
+      .json(
+        new ApiResponse('success', {
+          id: safeUser?.id,
+          name: safeUser?.name,
+          email: safeUser?.email,
+          accessToken: accessToken,
+        })
+      );
   }
 );
 
 export const handleRefreshToken = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const refreshToken = req.cookies.refreshToken;
-    if (!refreshToken) throw new AppError('Refresh token missing', 401);
+    if (!refreshToken)
+      throw new AppError(
+        'Refresh token missing',
+        config.STATUS_CODE.BAD_REQUEST
+      );
     const decoded = jwt.verify(refreshToken, config.JWT_REFRESH_SECRET!) as {
       userId: string;
     };
@@ -117,7 +144,7 @@ export const handleRefreshToken = asyncHandler(
     );
 
     res
-      .status(200)
+      .status(config.STATUS_CODE.OK)
       .json(new ApiResponse('success', {accessToken: newAccessToken}));
   }
 );
@@ -125,6 +152,8 @@ export const handleRefreshToken = asyncHandler(
 export const handleLogout = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     res.clearCookie('refreshToken');
-    res.status(200).json(new ApiResponse('success', 'Logged out'));
+    res
+      .status(config.STATUS_CODE.OK)
+      .json(new ApiResponse('success', 'Logged out'));
   }
 );
