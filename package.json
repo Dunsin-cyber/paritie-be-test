@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "backend-coding-exercise",
   "main": "src/server.ts",
-  "repository": "https://github.com/Dunsin-cyber/backend-test.git",
+  "repository": "https://github.com/Dunsin-cyber/paritie-be-test.git",
   "author": "Dunsin <ayodejiabisuwa23@gmail.com>",
   "license": "MIT",
   "private": false,
