@@ -41,7 +41,7 @@ export const getUserTransactions = async (
     orderBy: {createdAt: 'desc'},
     page: page ? +page : undefined,
     limit: limit ? +limit : undefined,
-    include: {entries: true, donation: true},
+    include: {entries: true},
   });
 };
 

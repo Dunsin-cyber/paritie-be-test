@@ -41,7 +41,6 @@ export const createUser = async (data: CreateUserT) => {
       // 2. Create transaction, transfer and entries
       const transaction = await tx.transaction.create({
         data: {
-          type: 'CREDIT',
           sourceType: 'TRANSFER',
           description: 'Initial funding',
           status: 'COMPLETED',
@@ -75,6 +74,7 @@ export const createUser = async (data: CreateUserT) => {
         data: [
           {
             transactionId: transaction.id,
+            type: 'DEBIT',
             walletId: systemWallet.id,
             userId: systemWallet.userId,
             amount: -amount,
@@ -83,6 +83,7 @@ export const createUser = async (data: CreateUserT) => {
           },
           {
             transactionId: transaction.id,
+            type: 'CREDIT',
             walletId: user.wallet!.id,
             userId: user.id,
             amount: amount,
@@ -107,8 +108,7 @@ export const getUserByEmail = async (email: string) => {
     select: {
       id: true,
       email: true,
-      name: true,
-      wallet: true,
+      name: true
     },
   });
 

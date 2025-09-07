@@ -42,7 +42,7 @@ model Wallet {
 
 model Transaction {
   id          String            @id @default(uuid())
-  type        TransactionType
+  //TODO: i think this should be in transactionEntry not trancation
   sourceType  TransactionSource // identifies the domain model
   reference   String? // optional external object id
   description String?
@@ -63,6 +63,7 @@ model Transaction {
 
 model TransactionEntry {
   id            String      @id @default(uuid())
+  type        TransactionType
   transactionId String
   transaction   Transaction @relation(fields: [transactionId], references: [id])
 
