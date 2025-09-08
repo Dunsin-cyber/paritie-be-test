@@ -79,12 +79,11 @@ const router = express.Router();
  */
 router.post('/create', handleCreateTransfer);
 
-
 /**
  * @swagger
  * /api/transfer/my-transfers:
  *   get:
- *     summary: Get donations made by the user within a date range
+ *     summary: Get transfers made by the authenticated user within a date range
  *     tags: [Transfer]
  *     security:
  *       - bearerAuth: []
@@ -93,18 +92,18 @@ router.post('/create', handleCreateTransfer);
  *         name: from
  *         schema:
  *           type: string
- *           minimum: 1
+ *           format: date
  *         required: false
- *         description: start date
- *         example: "01/02/2024"
+ *         description: Start date for filtering transfers
+ *         example: "2024-02-01"
  *       - in: query
  *         name: to
  *         schema:
  *           type: string
- *           minimum: 1
+ *           format: date
  *         required: false
- *         description: end date
- *         example: "12/2025"
+ *         description: End date for filtering transfers
+ *         example: "2025-12-31"
  *       - in: query
  *         name: page
  *         schema:
@@ -123,7 +122,87 @@ router.post('/create', handleCreateTransfer);
  *         example: 10
  *     responses:
  *       200:
- *         description: list of donations made by the user
+ *         description: List of transfers retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     data:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                             example: f5e546d6-eacc-4335-b189-e7c4386fd59d
+ *                           amount:
+ *                             type: number
+ *                             example: 1000
+ *                           note:
+ *                             type: string
+ *                             example: transfer for school fees
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: 2025-09-08T14:22:22.209Z
+ *                           sender:
+ *                             type: object
+ *                             properties:
+ *                               id:
+ *                                 type: string
+ *                                 example: 227693eb-5c30-4db8-b053-2b3c28c7f8e1
+ *                               name:
+ *                                 type: string
+ *                                 example: Toyo
+ *                           recepient:
+ *                             type: object
+ *                             properties:
+ *                               id:
+ *                                 type: string
+ *                                 example: b52d3fd8-0543-417e-b1fc-fd63e67c1c8d
+ *                               name:
+ *                                 type: string
+ *                                 example: Dunsin
+ *                           transaction:
+ *                             type: object
+ *                             properties:
+ *                               id:
+ *                                 type: string
+ *                                 example: 32a74818-aaad-42d9-97d8-a350d04b22c6
+ *                               sourceType:
+ *                                 type: string
+ *                                 example: TRANSFER
+ *                               status:
+ *                                 type: string
+ *                                 example: COMPLETED
+ *                               createdAt:
+ *                                 type: string
+ *                                 format: date-time
+ *                                 example: 2025-09-08T14:22:20.561Z
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         total:
+ *                           type: integer
+ *                           example: 1
+ *                         page:
+ *                           type: integer
+ *                           example: 1
+ *                         limit:
+ *                           type: integer
+ *                           example: 10
+ *                         totalPages:
+ *                           type: integer
+ *                           example: 1
+ *       404:
+ *         description: No transfers found
  */
 
 router.get('/my-transfers', handleFilterTransfers);
@@ -132,7 +211,7 @@ router.get('/my-transfers', handleFilterTransfers);
  * @swagger
  * /api/transfer/{id}:
  *   get:
- *     summary: Get details of a specific donation by ID
+ *     summary: Get details of a specific transfer by ID
  *     tags: [Transfer]
  *     security:
  *       - bearerAuth: []
@@ -142,13 +221,63 @@ router.get('/my-transfers', handleFilterTransfers);
  *         required: true
  *         schema:
  *           type: string
- *         description: The ID of the donation to retrieve
+ *         description: The ID of the transfer to retrieve
  *     responses:
  *       200:
  *         description: Transfer details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: f5e546d6-eacc-4335-b189-e7c4386fd59d
+ *                     amount:
+ *                       type: number
+ *                       example: 1000
+ *                     note:
+ *                       type: string
+ *                       example: transfer for school fees
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: 2025-09-08T14:22:22.209Z
+ *                     recepient:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                           example: b52d3fd8-0543-417e-b1fc-fd63e67c1c8d
+ *                         name:
+ *                           type: string
+ *                           example: Dunsin
+ *                     transaction:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                           example: 32a74818-aaad-42d9-97d8-a350d04b22c6
+ *                         sourceType:
+ *                           type: string
+ *                           example: TRANSFER
+ *                         status:
+ *                           type: string
+ *                           example: COMPLETED
+ *                         createdAt:
+ *                           type: string
+ *                           format: date-time
+ *                           example: 2025-09-08T14:22:20.561Z
  *       404:
  *         description: Transfer not found
  */
+
 router.get('/:id', handleTransferDetails);
 
 export default router;

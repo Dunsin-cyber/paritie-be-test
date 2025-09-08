@@ -89,7 +89,6 @@ router.post('/create', handleCreateDonation);
  *         name: from
  *         schema:
  *           type: string
- *           minimum: 1
  *         required: false
  *         description: start date
  *         example: "01/02/2024"
@@ -97,7 +96,6 @@ router.post('/create', handleCreateDonation);
  *         name: to
  *         schema:
  *           type: string
- *           minimum: 1
  *         required: false
  *         description: end date
  *         example: "12/2025"
@@ -120,10 +118,85 @@ router.post('/create', handleCreateDonation);
  *     responses:
  *       200:
  *         description: list of donations made by the user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     data:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                             format: uuid
+ *                           amount:
+ *                             type: number
+ *                             example: 50
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                           donor:
+ *                             type: object
+ *                             properties:
+ *                               id:
+ *                                 type: string
+ *                                 format: uuid
+ *                               name:
+ *                                 type: string
+ *                               email:
+ *                                 type: string
+ *                           beneficiary:
+ *                             type: object
+ *                             properties:
+ *                               id:
+ *                                 type: string
+ *                                 format: uuid
+ *                               name:
+ *                                 type: string
+ *                               email:
+ *                                 type: string
+ *                           transaction:
+ *                             type: object
+ *                             properties:
+ *                               id:
+ *                                 type: string
+ *                                 format: uuid
+ *                               sourceType:
+ *                                 type: string
+ *                                 example: DONATION
+ *                               status:
+ *                                 type: string
+ *                                 example: COMPLETED
+ *                               createdAt:
+ *                                 type: string
+ *                                 format: date-time
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         total:
+ *                           type: integer
+ *                           example: 1
+ *                         page:
+ *                           type: integer
+ *                           example: 1
+ *                         limit:
+ *                           type: integer
+ *                           example: 10
+ *                         totalPages:
+ *                           type: integer
+ *                           example: 1
  */
 
-router.get('/my-donations', handleFilterDonations);
 
+router.get('/my-donations', handleFilterDonations);
 /**
  * @swagger
  * /api/donation/{id}:
@@ -142,9 +215,54 @@ router.get('/my-donations', handleFilterDonations);
  *     responses:
  *       200:
  *         description: Donation details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       format: uuid
+ *                     amount:
+ *                       type: number
+ *                       example: 50
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                     beneficiary:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                           format: uuid
+ *                         name:
+ *                           type: string
+ *                           example: Toyo
+ *                     transaction:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                           format: uuid
+ *                         sourceType:
+ *                           type: string
+ *                           example: DONATION
+ *                         status:
+ *                           type: string
+ *                           example: COMPLETED
+ *                         createdAt:
+ *                           type: string
+ *                           format: date-time
  *       404:
  *         description: Donation not found
  */
+
 router.get('/:id', handleDonationDetails);
 
 export default router;

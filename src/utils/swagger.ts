@@ -22,13 +22,16 @@ const swaggerDefinition = {
     {
       url: "https://paritie-be-test.onrender.com",
       description: "Production server",
-    }
+    },
+    {
+      url: `http://localhost:${config.PORT}`,
+    },
   ],
 };
 
 const options = {
   swaggerDefinition,
-  apis: [path.join(__dirname, '../routes/**/*.{ts,js}')],
+  apis: [path.join(__dirname, '../routes/**/*.{js,ts}')],
 };
 
 const swaggerSpec = swaggerJSDoc(options);

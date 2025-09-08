@@ -76,8 +76,8 @@ Now you can open the documentation link in your browser to test the APIs.
 
 A hosted version of this service is available at:
 
-- **Backend URL** → [https://backend-test-21ij.onrender.com](https://backend-test-21ij.onrender.com)
-- **API Docs** → http://localhost:[PORT]/api-docs
+- **Backend URL** → [https://paritie-be-test.onrender.com](https://paritie-be-test.onrender.com)
+- **API Docs** → https://paritie-be-test.onrender.com/api-docs/
 
 ⚠️ **Note**:
 
