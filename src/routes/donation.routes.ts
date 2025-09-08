@@ -32,24 +32,49 @@ const router = express.Router();
  *               beneficiaryEmail:
  *                 type: string
  *                 description: Email of the beneficiary receiving the donation
- *                 example: "dunsin@exmaple.com"
+ *                 example: "toyo@example.com"
  *               transactionPin:
  *                 type: string
- *                 description: User's 4 0r 6 digit transaction PIN
+ *                 description: User's 4 or 6 digit transaction PIN
  *                 example: "123456"
- *                 required: true
  *     responses:
  *       201:
  *         description: Donation created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       format: uuid
+ *                       example: d9b7687a-c116-48d9-a02c-fe45fe725940
+ *                     amount:
+ *                       type: number
+ *                       example: 50
+ *                     transactionId:
+ *                       type: string
+ *                       format: uuid
+ *                       example: b46f3a63-e86a-4efe-bd61-370af75cfbea
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: 2025-09-07T18:10:21.666Z
  *       400:
  *         description: Invalid request payload or parameters
  *       401:
- *         description: Unaut   horized — invalid transaction PIN
+ *         description: Unauthorized — invalid transaction PIN
  *       500:
  *         description: Internal server error
  */
-
 router.post('/create', handleCreateDonation);
+
 
 /**
  * @swagger

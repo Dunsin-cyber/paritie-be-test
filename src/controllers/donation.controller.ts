@@ -11,21 +11,25 @@ import {getUserPrivateFn} from '@/services/auth.service';
 import {validate as uuidValidate} from 'uuid';
 import utils from '@/utils/index';
 import {User} from '@prisma/client';
+import { config } from '@/constants';
+
 
 export const handleCreateDonation = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     //TODO: check if both params are wrong too
     const {amount, beneficiaryEmail, transactionPin} = req.body;
     if (typeof amount != 'number' || !utils.validEmail(beneficiaryEmail)) {
-      throw new AppError('Invalid input data', 400);
+      throw new AppError('Invalid input data', config.STATUS_CODE.BAD_REQUEST);
     }
 
     const user = (req as Request & {user?: User}).user!;
     if (!user.transactionPIN) {
-      throw new AppError('Please set a Transaction PIN first', 400);
+      throw new AppError('Please set a Transaction PIN first', config.STATUS_CODE.BAD_REQUEST
+
+      );
     }
     if (!transactionPin || !utils.validPIN(transactionPin)) {
-      throw new AppError('Invalid transaction PIN', 401);
+      throw new AppError('Invalid transaction PIN', config.STATUS_CODE.BAD_REQUEST);
     }
 
     const beneficiary = await getUserPrivateFn(
@@ -33,11 +37,11 @@ export const handleCreateDonation = asyncHandler(
     );
 
     if (!beneficiary) {
-      throw new AppError('Beneficiary does not exist', 404);
+      throw new AppError('Beneficiary does not exist',config.STATUS_CODE.NOT_FOUND );
     }
 
     if (utils.formatEmail(beneficiaryEmail) === user.email) {
-      throw new AppError('You cannot Donate to Self', 401);
+      throw new AppError('You cannot Donate to Self', config.STATUS_CODE.BAD_REQUEST);
     }
 
     const donation = await createDonation(
@@ -47,7 +51,7 @@ export const handleCreateDonation = asyncHandler(
       transactionPin
     );
 
-    return res.status(201).json(new ApiResponse('success', donation));
+    return res.status(config.STATUS_CODE.CREATED).json(new ApiResponse('success', donation));
   }
 );
 
@@ -72,7 +76,7 @@ export const handleFilterDonations = asyncHandler(
     }
 
     if ((startDate && !endDate) || (!startDate && endDate)) {
-      throw new AppError('There must be both start and end date', 401);
+      throw new AppError('There must be both start and end date', config.STATUS_CODE.BAD_REQUEST);
     }
 
     const date = {start: startDate?.start, end: endDate?.end};
@@ -85,10 +89,10 @@ export const handleFilterDonations = asyncHandler(
     );
 
     if (!donations) {
-      throw new AppError('No donations found in this period', 404);
+      throw new AppError('No donations found in this period', config.STATUS_CODE.NOT_FOUND);
     }
 
-    return res.status(200).json(new ApiResponse('success', donations));
+    return res.status(config.STATUS_CODE.OK).json(new ApiResponse('success', donations));
   }
 );
 
@@ -96,18 +100,18 @@ export const handleDonationDetails = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const donationId = req.params.id;
     if (!donationId) {
-      throw new AppError('Donation ID is required', 400);
+      throw new AppError('Donation ID is required', config.STATUS_CODE.BAD_REQUEST);
     }
     const validUUID = uuidValidate(donationId);
     if (!validUUID) {
-      throw new AppError('Invalid donation ID format', 400);
+      throw new AppError('Invalid donation ID format', config.STATUS_CODE.BAD_REQUEST);
     }
     const donation = await getDonationById(donationId);
 
     if (!donation) {
-      throw new AppError('Donation not found', 404);
+      throw new AppError('Donation not found', config.STATUS_CODE.NOT_FOUND);
     }
 
-    return res.status(200).json(new ApiResponse('success', donation));
+    return res.status(config.STATUS_CODE.OK).json(new ApiResponse('success', donation));
   }
 );
