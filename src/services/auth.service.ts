@@ -53,6 +53,8 @@ export const createUser = async (data: CreateUserT) => {
           transfer: {
             create: {
               amount,
+                senderId: systemWallet.userId,
+                recepientId: user.id,
               note: 'Initial Deposit to new user',
             },
           },

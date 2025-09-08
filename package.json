@@ -15,7 +15,7 @@
     "db:deploy": "cd ./src && npx prisma migrate deploy",
     "db:reset": "cd ./src && npx prisma migrate reset --force",
     "format": "prettier --write .",
-    "db:migrate": "cd ./src && npx prisma migrate dev --name move_tx_type_to_entry",
+    "db:migrate": "cd ./src && npx prisma migrate dev --name add_relation_of_transfer_donation_to_user",
     "db:init": "cd ./src && npx prisma generate",
     "start": "node  dist/server.js",
     "start:prod": "npm run db:deploy:prod && npm run start",

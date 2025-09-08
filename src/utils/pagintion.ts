@@ -1,4 +1,4 @@
-import {PrismaClient} from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 type PaginationParams<T> = {
@@ -7,7 +7,8 @@ type PaginationParams<T> = {
   limit?: number;
   where?: any;
   orderBy?: any;
-  include?: any;
+  include?: any;  // for relations
+  select?: any;   // for scalars and/or specific fields
 };
 
 export const paginate = async <T>({
@@ -17,6 +18,7 @@ export const paginate = async <T>({
   where,
   orderBy,
   include,
+  select,
 }: PaginationParams<T>) => {
   const skip = (page - 1) * limit;
 
@@ -29,8 +31,9 @@ export const paginate = async <T>({
       where,
       orderBy,
       include,
+      select,
     }),
-    prismaModel.count({where}),
+    prismaModel.count({ where }),
   ]);
 
   return {

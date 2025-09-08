@@ -6,17 +6,18 @@ import {config} from '@/constants';
 
 const prisma = new PrismaClient();
 
-export const createDonation = async (
-  donor: User,
-  beneficiaryId: string,
+export const createTransfer = async (
+  sender: User,
+  recepientId: string,
+  note: string,
   amount: number,
   txPIN: string
 ) => {
   if (amount <= 0) {
-    throw new AppError('Donation amount must be greater than 0 :(', 400);
+    throw new AppError('Amount must be greater than 0 :(', config.STATUS_CODE.BAD_REQUEST);
   }
 
-  if (!(await utils.decryptPassword(donor.transactionPIN!, txPIN))) {
+  if (!(await utils.decryptPassword(sender.transactionPIN!, txPIN))) {
     throw new AppError(
       'Invalid transaction PIN',
       config.STATUS_CODE.BAD_REQUEST
@@ -24,55 +25,55 @@ export const createDonation = async (
   }
 
   const data = await prisma.$transaction(async (tx) => {
-    // ? 1 - GET DONAOR AND BENEFICIARY WALLETS
+    // ? 1 - GET SENDER AND RECEPIENT WALLETS
 
-    const donorWallet = await tx.wallet.findUnique({
-      where: {userId: donor.id},
+    const senderWallet = await tx.wallet.findUnique({
+      where: {userId: sender.id},
       select: {id: true, userId: true, balance: true},
     });
 
-    if (!donorWallet) {
+    if (!senderWallet) {
       throw new AppError(
-        'Donor wallet not found',
+        'Please create a wallet first',
         config.STATUS_CODE.NOT_FOUND
       );
     }
 
-    if (donorWallet.balance < amount) {
+    if (senderWallet.balance < amount) {
       throw new AppError(
         'Insufficient balance to make donation',
         config.STATUS_CODE.BAD_REQUEST
       );
     }
 
-    const beneficiaryWallet = await tx.wallet.findUnique({
-      where: {userId: beneficiaryId},
+    const recepientWallet = await tx.wallet.findUnique({
+      where: {userId: recepientId},
       select: {id: true, userId: true, balance: true},
     });
 
-    if (!beneficiaryWallet) {
+    if (!recepientWallet) {
       throw new AppError(
-        'Beneficiary wallet not found',
+        'Recepient wallet not found',
         config.STATUS_CODE.NOT_FOUND
       );
     }
 
     //? 2 - UPDATE WALLET BALANCE
-    const updatedDonorWallet = await tx.wallet.update({
-      where: {userId: donor.id},
+    const updatedsenderWallet = await tx.wallet.update({
+      where: {userId: sender.id},
       data: {balance: {decrement: amount}},
     });
 
-    const updatedBeneficiaryWallet = await tx.wallet.update({
-      where: {userId: beneficiaryId},
+    const updatedRecepientWallet = await tx.wallet.update({
+      where: {userId: recepientId},
       data: {balance: {increment: amount}},
     });
 
     //? 3 - CREATE TRANSACTION RECORD, TRANSACTION ENTRY and CREATE DONATION RECORD
     const transaction = await tx.transaction.create({
       data: {
-        description: `Donation of N${amount} from ${donor.id} to ${beneficiaryId}`,
-        sourceType: 'DONATION',
+        description: `Transfer of N${amount} from ${sender.id} to ${recepientId}`,
+        sourceType: 'TRANSFER',
         status: 'COMPLETED',
         amount,
         currency: 'NGN',
@@ -81,41 +82,43 @@ export const createDonation = async (
         entries: {
           create: [
             {
-              walletId: donorWallet.id,
+              walletId: senderWallet.id,
               type: 'DEBIT',
-              userId: donor.id,
+              userId: sender.id,
               amount: -amount,
-              balanceBefore: donorWallet.balance,
-              balanceAfter: updatedDonorWallet.balance,
+              balanceBefore: senderWallet.balance,
+              balanceAfter: updatedsenderWallet.balance,
             },
             {
-              walletId: beneficiaryWallet.id,
+              walletId: recepientWallet.id,
               type: 'CREDIT',
-              userId: beneficiaryId,
+              userId: recepientId,
               amount: amount,
-              balanceBefore: beneficiaryWallet.balance,
-              balanceAfter: updatedBeneficiaryWallet.balance,
+              balanceBefore: recepientWallet.balance,
+              balanceAfter: updatedRecepientWallet.balance,
             },
           ],
         },
       },
     });
 
-    const donation = await tx.donation.create({
+    const transfer = await tx.transfer.create({
       data: {
         amount,
         transactionId: transaction.id,
-        donorId: donor.id,
-        beneficiaryId,
+        senderId: sender.id,
+        recepientId,
+        note
       },
     });
 
-    const {updatedAt, ...cleanDonationReturn} = donation;
+    const {updatedAt, ...cleanTransferData} = transfer;
     return {
-      id: cleanDonationReturn.id,
-      amount: cleanDonationReturn.amount,
-      transactionId: cleanDonationReturn.transactionId,
-      createdAt: cleanDonationReturn.createdAt,
+      id: cleanTransferData.id,
+      amount: cleanTransferData.amount,
+      note: cleanTransferData.note,
+      transactionId: cleanTransferData.transactionId,
+      createdAt: cleanTransferData.createdAt,
     };
   });
 
@@ -123,19 +126,19 @@ export const createDonation = async (
 };
 
 
-export const countUserDonations = async (userId: string) => {
-  return prisma.donation.count({
-    where: { donorId:userId},
+export const countUserTransfers = async (userId: string) => {
+  return prisma.transfer.count({
+    where: {senderId:userId},
   });
 };
 
-export const donationsInPeriod = async (
+export const transfersInPeriod = async (
   userId: string,
   date?: {start?: Date; end?: Date},
   page?: string,
   limit?: string
 ) => {
-  const where: any = {donorId: userId};
+  const where: any = {senderId: userId};
 
   if (date && date.start && date.start) {
     where.createdAt = {
@@ -147,7 +150,7 @@ export const donationsInPeriod = async (
   
 
 return paginate({
-  model: 'donation',
+  model: 'transfer',
   where,
   orderBy: { createdAt: 'desc' },
   page: page ? +page : undefined,
@@ -155,19 +158,18 @@ return paginate({
   select: {
     id: true,
     amount: true,
+    note:true,
     createdAt: true,
-    donor: {
+    sender: {
       select: {
         id: true,
         name: true,
-        email: true,
       }
     },
-    beneficiary: {
+    recepient: {
       select: {
         id: true,
         name: true,
-        email: true,
       }
     },
     transaction: {
@@ -180,17 +182,17 @@ return paginate({
     }
   }
 });
-
 };
 
-export const getDonationById = async (donationId: string) => {
-  const data = prisma.donation.findUnique({
-    where: {id: donationId},
-      select: {
+export const getTransferById = async (transferId: string) => {
+  const data = prisma.transfer.findUnique({
+    where: {id: transferId},
+     select: {
     id: true,
     amount: true,
+    note:true,
     createdAt: true,
-    beneficiary: {
+    recepient: {
       select: {
         id: true,
         name: true,

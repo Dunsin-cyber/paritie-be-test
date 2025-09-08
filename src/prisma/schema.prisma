@@ -26,6 +26,11 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  sentDonation       Donation[] @relation("donor")
+  donationReceieved  Donation[] @relation("beneficiary")
+  transfers          Transfer[] @relation("sender")
+  transfersReceieved Transfer[] @relation("recepient")
 }
 
 model Wallet {
@@ -62,10 +67,10 @@ model Transaction {
 }
 
 model TransactionEntry {
-  id            String      @id @default(uuid())
-  type        TransactionType
+  id            String          @id @default(uuid())
+  type          TransactionType
   transactionId String
-  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  transaction   Transaction     @relation(fields: [transactionId], references: [id])
 
   walletId String
   wallet   Wallet @relation(fields: [walletId], references: [id])
@@ -83,33 +88,46 @@ model TransactionEntry {
   @@index([walletId])
 }
 
-
 //? Business / domain objects
 
 model Donation {
-  id      String  @id @default(uuid())
-  amount  Float
-  message String?
+  id            String  @id @default(uuid())
+  amount        Float
+  message       String?
+  donorId       String
+  donor         User    @relation("donor", fields: [donorId], references: [id])
+  beneficiaryId String
+  beneficiary   User    @relation("beneficiary", fields: [beneficiaryId], references: [id])
 
   transactionId String?
   transaction   Transaction? @relation(fields: [transactionId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([donorId])
+  @@index([beneficiaryId])
+
 }
 
 model Transfer {
-  id     String  @id @default(uuid())
-  amount Float
-  note   String?
+  id          String  @id @default(uuid())
+  amount      Float
+  note        String?
+  senderId    String
+  sender      User    @relation("sender", fields: [senderId], references: [id])
+  recepientId String
+  recepient   User    @relation("recepient", fields: [recepientId], references: [id])
 
   transactionId String?
   transaction   Transaction? @relation(fields: [transactionId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
 
+  @@index([senderId])
+  @@index([recepientId])
+}
 
 //? ENUMS
 
