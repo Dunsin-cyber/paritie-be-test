@@ -11,7 +11,7 @@
     "clean": "rimraf dist",
     "prestart": "node  dist/constants/index.js",
     "dev": "nodemon --legacy-watch  -r tsconfig-paths/register src/server.ts",
-    "build": "npm run clean && tsc && cp -r src/prisma/ dist/prisma/ && npm run db:init",
+    "build": "npm run clean && tsc && cp -r src/prisma/ dist/prisma/ ",
     "db:deploy": "cd ./src && npx prisma migrate deploy",
     "db:reset": "cd ./src && npx prisma migrate reset --force",
     "format": "prettier --write .",
@@ -19,7 +19,7 @@
     "db:init": "cd ./src && npx prisma generate",
     "start": "node  dist/server.js",
     "start:prod": "npm run db:deploy:prod && npm run start",
-    "db:deploy:prod": "cd ./dist && npx prisma migrate deploy",
+    "db:deploy:prod": "cd ./dist",
     "db:seed": "npx prisma db seed --schema ./src/prisma/schema.prisma"
   },
   "prisma": {
@@ -67,7 +67,7 @@
     "typescript": "^5.8.2"
   },
   "engines": {
-    "node": "^20.00.0",
+    "node": "^24.7.0",
     "yarn": "^1.22.19"
   }
 }

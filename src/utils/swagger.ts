@@ -20,6 +20,10 @@ const swaggerDefinition = {
   },
   servers: [
     {
+      url: "https://paritie-be-test.onrender.com",
+      description: "Production server",
+    },
+    {
       url: `http://localhost:${config.PORT}`,
     },
   ],
